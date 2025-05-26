@@ -1,0 +1,7 @@
+# Model files
+yolov8x.pt
+
+# Temporary directories
+static/uploads/
+static/output/
+

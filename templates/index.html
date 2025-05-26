@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video Panorama Stitcher</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .loader {
+      margin: 20px auto;
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #3498db;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .full-image {
+      width: 90%;
+      max-width: 800px;
+      display: block;
+      margin: 10px auto;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #detection-section h3, #exit-description-section h3, #general-description-section h3 {
+      text-align: center;
+      margin-top: 20px;
+      color: #333;
+    }
+
+    #exit-description-section p, #general-description-section p {
+      text-align: center;
+      margin: 10px auto;
+      max-width: 800px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top" id="top-panel">
+      <h2 class="heading">360° Environment Perception and Interpretation</h2>
+
+      <!-- Panorama Image -->
+      <img id="panorama-output" src="" alt="Panorama Output" style="display: none; width: 100%;">
+
+      <!-- Upload Form -->
+      <div id="upload-section">
+        <form id="upload-form" enctype="multipart/form-data">
+          <input type="file" name="video" accept="video/*" required>
+          <button type="submit">Upload & Stitch</button>
+        </form>
+      </div>
+
+      <!-- Spinner & Processing Text -->
+      <div id="spinner" style="display: none;">
+        <div class="loader"></div>
+        <p>Processing...</p>
+      </div>
+
+      <!-- Object Detection Results -->
+      <div id="detection-section" style="display: none;">
+        <h3>Object Detection without SAHI</h3>
+        <img id="detection-without" class="full-image" src="" alt="Object detection without SAHI">
+
+        <h3>Object Detection with SAHI</h3>
+        <img id="detection-with" class="full-image" src="" alt="Object detection with SAHI">
+      </div>
+    </div>
+
+    <div class="bottom">
+      <!-- LLM Response: Exit Instructions -->
+      <div id="exit-description-section" style="display: none;">
+        <h3>Exit Instructions</h3>
+        <p id="description-exit"></p>
+      </div>
+      <!-- LLM Response: General Room Description and Atmosphere -->
+      <div id="general-description-section" style="display: none;">
+        <h3>General Room Description &amp; Atmosphere</h3>
+        <p id="description-general"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const uploadForm = document.getElementById('upload-form');
+      const uploadSection = document.getElementById('upload-section');
+      const spinner = document.getElementById('spinner');
+      const outputImg = document.getElementById('panorama-output');
+      const detectionSection = document.getElementById('detection-section');
+      const detectionWithout = document.getElementById('detection-without');
+      const detectionWith = document.getElementById('detection-with');
+      const exitDescriptionSection = document.getElementById('exit-description-section');
+      const generalDescriptionSection = document.getElementById('general-description-section');
+      const descriptionExit = document.getElementById('description-exit');
+      const descriptionGeneral = document.getElementById('description-general');
+
+      uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(uploadForm);
+
+        // Show spinner for panorama creation
+        spinner.style.display = 'block';
+        spinner.querySelector('p').innerText = "Extracting frames, stitching frames...";
+        uploadSection.style.display = 'none';
+
+        try {
+          const response = await fetch('/upload', {
+            method: 'POST',
+            body: formData
+          });
+
+          const result = await response.json();
+          if (result.error) {
+            alert(result.error);
+            spinner.style.display = 'none';
+            uploadSection.style.display = 'block';
+            return;
+          }
+
+          // Show panorama
+          outputImg.src = result.panorama_url;
+          outputImg.style.display = 'block';
+          spinner.style.display = 'none';
+
+          // Wait 5 seconds, then proceed to object detection and inference
+          setTimeout(async () => {
+            outputImg.style.display = 'none';
+            spinner.style.display = 'block';
+            spinner.querySelector('p').innerText = "Performing object detection and generating description...";
+
+            const detectionResponse = await fetch('/object_detection');
+            const detectionResult = await detectionResponse.json();
+
+            if (detectionResult.error) {
+              alert(detectionResult.error);
+              spinner.style.display = 'none';
+              uploadSection.style.display = 'block';
+              return;
+            }
+
+            // Update detection images
+            detectionWithout.src = detectionResult.object_detection_without_sahi_url;
+            detectionWith.src = detectionResult.object_detection_with_sahi_url;
+            detectionSection.style.display = 'block';
+
+            // Show spinner for LLM inference
+            spinner.querySelector('p').innerText = "Getting inference from LLM...";
+            descriptionExit.innerText = detectionResult.description_exit;
+            descriptionGeneral.innerText = detectionResult.description_general;
+            exitDescriptionSection.style.display = 'block';
+            generalDescriptionSection.style.display = 'block';
+            spinner.style.display = 'none';
+          }, 5000);
+        } catch (error) {
+          alert('An error occurred: ' + error.message);
+          spinner.style.display = 'none';
+          uploadSection.style.display = 'block';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
