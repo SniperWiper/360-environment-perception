@@ -6,25 +6,26 @@ A web application for creating 360° panoramic images from video input, performi
 ## Screenshots
 
 **Upload Interface**: Interface for uploading a video to generate a panorama  
-<img src="images/upload_interface.png" width="500"/>
+<img src="images/upload_interface.png" width="750"/>
 
 **Stitched Panorama**: 360° panorama created from the uploaded video  
-<img src="images/stitched_panorama.png" width="500"/>
+<img src="images/stitched_paranorma.png" width="1000"/>
 
 **Object Detection without SAHI**: Object detection results using baseline YOLOv8x model  
-<img src="images/detection_without_sahi.png" width="500"/>
+<img src="images/detection_without_sahi.png" width="1000"/>
 
 **Object Detection with SAHI**: Object detection results using fine-tuned model with SAHI slicing  
-<img src="images/detection_with_sahi.png" width="500"/>
+<img src="images/detection_with_sahi.png" width="1000"/>
 
 **Exit Instructions**: Text instructions for navigating to the room's exit  
-<img src="images/exit_instructions.png" width="500"/>
+<img src="images/exit_instructions.png" width="750"/>
 
 **General Room Description and Atmosphere**: Text description of the room’s layout and ambiance  
-<img src="images/general_description.png" width="500"/>
+<img src="images/general_description.png" width="750"/>
 
-**Detection and Description Interface**: Interface showing comparison of object detection results  and Gemma 3 responses for navigation 
-<img src="images/final_interface.png" width="500"/>
+**Detection and Description Interface**: Interface showing comparison of object detection results and Gemma 3 responses for navigation 
+
+<img src="images/final_interface.png" width="750"/>
 
 ## Features
 - **Video to Panorama**: Extracts frames from an uploaded video and stitches them into a 360° panorama.
